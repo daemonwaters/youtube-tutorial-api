@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: My API
+  description: Docs for youtube tutorial api
+  version: 1.0.0
+servers:
+  - url : http://localhost:6500
+    description: The main server
+  - url: http://localhost:3000
+    description: Backup server
+paths:
+  /api/v1/users:
+    get:
+      operationId: getAll
+      summary: Gets all of users
+      description: Retrieves a list of all users from database in `JSON` format
+      tags:
+        - Users
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user_id:
+                      type: integer
+                    username:
+                      type: string
+                    password:
+                      type: string
+                    age:
+                      type: integer
+                  example:
+                    user_id: 1
+                    username: james
+                    password: fqdqd
+                    age : 23
+        "500":
+          $ref: "#/components/errors/InternalServerError"
+    post:
+      operationId: create
+      summary: creates a new user
+      description: Creates a new user in database
+      tags:
+        - Users
+      requestBody:
+        description: Data for the new user to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+              required:
+                - user_id
+                - username
+                - password
+                - age
+              example:
+                user_id: 1
+                username: james
+                password: dqwdw
+                age: 23
+      responses:
+        "201":
+          description: created
+        "400":
+          $ref: "#/components/errors/BadRequest"
+        "409":
+          $ref: "#/components/errors/Conflict"
+        "500":
+          $ref: "#/components/errors/InternalServerError"
+
+  /api/v1/users/{id}:
+    get:
+      operationId: getOne
+      summary: gets a user from database
+      description: Gets a single user from db as `JSON` object
+      tags:
+        - Users
+      parameters:
+        - $ref: "#/components/schemas/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+                example:
+                  user_id: 1
+                  username: james
+                  password: fqdqd
+                  age : 23
+        "404":
+          $ref: "#/components/errors/NotFound"
+        "500":
+          $ref: "#/components/errors/InternalServerError"
+    put:
+      operationId: update
+      summary: updates a user data.
+      description: updates `all` fields of a user in database.
+      tags:
+        - Users
+      parameters:
+        - $ref: "#/components/schemas/Id"
+      requestBody:
+        description: New data for user to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+              required:
+                - user_id
+                - username
+                - password
+                - age
+              example:
+                user_id: 1
+                username: james
+                password: dqwdw
+                age: 23
+      responses:
+        "201":
+          description: created
+        "404":
+          $ref: "#/components/errors/NotFound"
+        "500":
+          $ref: "#/components/errors/InternalServerError"
+    delete:
+      operationId: remove
+      summary: deletes a user
+      description: deletes a user of specified `id`
+      tags:
+        - Users
+      parameters:
+        - $ref: "#/components/schemas/Id"
+      responses:
+        "204":
+          description: No content
+        "404":
+          $ref: "#/components/errors/NotFound"
+        "500":
+          $ref: "#/components/errors/InternalServerError"
+      
+
+
+
+
+
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        age:
+          type: integer
+    Error:
+      type: object
+      properties:
+        name:
+          type: string
+        statusCode:
+          type: integer
+        description:
+          type: string
+        isOperational:
+          type: boolean
+    Id:
+      name: id
+      in : path
+      required: true
+      type: integer
+      description: The unique `id` of the wanted user
+      example: 1
+  errors:
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              name: Internal Server Error
+              statusCode: 500
+              description: Something went wrong
+              isOperational: false
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              name: Bad Request
+              statusCode: 400
+              description: All fields are required
+              isOperational: true
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              name: Not Found
+              statusCode: 404
+              description: User not found
+              isOperational: true
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            example:
+              name: Conflict
+              statusCode: 409
+              description: Credentials already taken
+              isOperational: true
